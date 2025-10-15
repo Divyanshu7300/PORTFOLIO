@@ -10,12 +10,13 @@ conn();
 
 const app = express();
 const PORT = process.env.PORT ;
+const FRONTEND_URI = process.env.FRONT_URI
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: FRONTEND_URI }));
 
 // Test route
 app.use("/connect", connect);
