@@ -12,7 +12,7 @@ export default function PortfolioPage() {
     console.log("Fetching projects from backend...");
     const fetchProjects = async () => {
       try {
-        const res = await axios.get(`${process.env.B_URI}/projects`);
+        const res = await axios.get(`${B_URI}/projects`);
         console.log("Projects fetched successfully:", res.data);
         setProjects(res.data);
       } catch (err) {
