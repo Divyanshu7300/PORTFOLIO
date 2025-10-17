@@ -12,7 +12,7 @@ export default function ContactPage() {
     const data = Object.fromEntries(form.entries());
 
     try {
-      const res = await axios.post(`${process.env.B_URI}/connect`, data);
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/connect`, data);
       setStatus(res.data.message || "Form submitted successfully!");
       e.target.reset();
     } catch (err) {
