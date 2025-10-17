@@ -11,7 +11,7 @@ conn();
 const app = express();
 const PORT = process.env.PORT ;
 
-const FRONTEND_URI = process.env.FRONT_URI
+const FRONTEND_URI = process.env.FRONTEND_URI
 
 
 
