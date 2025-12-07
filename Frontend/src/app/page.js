@@ -111,7 +111,7 @@ export default function PortfolioPage() {
 
     <div>
       <h3 className="font-bold uppercase mb-2">Core:</h3>
-      <p>Data Structures & Algorithms (Python), Git & GitHub, Problem Solving</p>
+      <p>Data Structures &amp; Algorithms (Python), Git &amp; GitHub, Problem Solving</p>
     </div>
   </div>
 </section>
