@@ -78,39 +78,43 @@ export default function PortfolioPage() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="text-gray-300 text-lg md:text-xl"
         >
-          I specialize in creating responsive and user-friendly web applications using modern technologies. I love turning ideas into reality with clean code, beautiful UI, and smooth animations.
+         I build scalable and interactive web applications while exploring ML-powered features and modern engineering practices—turning ideas into intuitive, high-performance products.
         </motion.p>
       </section>
 
       {/* Tech Stack / Skills */}
-      <section className="bg-white opacity-80 px-6 py-16 max-w-6xl mx-auto text-gray-800 rounded-2xl">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-3xl md:text-4xl font-bold uppercase  text-gray-800 text-center mb-10"
-        >
-          💻 Tech Stack & Skills
-        </motion.h2>
-        <div className="grid md:grid-cols-2 gap-12 text-gray-800 ">
-          <div>
-            <h3 className="font-bold uppercase mb-2">Frontend:</h3>
-            <p>Next.js / React, Tailwind CSS, Three.js, Framer Motion, Responsive Design</p>
-          </div>
-          <div>
-            <h3 className="font-bold uppercase mb-2">Backend:</h3>
-            <p>Node.js, Express, MongoDB, Socket.IO</p>
-          </div>
-          <div>
-            <h3 className="font-bold uppercase mb-2">Full-Stack / Integration:</h3>
-            <p>Axios / Fetch, Form handling, Async operations, Deployment (Vercel/Render/Heroku)</p>
-          </div>
-          <div>
-            <h3 className="font-bold uppercase mb-2">Professional Practices:</h3>
-            <p>Git & GitHub, Clean code, Environment variables, UI/UX design</p>
-          </div>
-        </div>
-      </section>
+<section className="bg-white opacity-80 px-6 py-16 max-w-6xl mx-auto text-gray-800 rounded-2xl">
+  <motion.h2
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+    className="text-3xl md:text-4xl font-bold uppercase text-gray-800 text-center mb-10"
+  >
+    💻 Tech Stack & Skills
+  </motion.h2>
+
+  <div className="grid md:grid-cols-2 gap-12 text-gray-800">
+    <div>
+      <h3 className="font-bold uppercase mb-2">Frontend:</h3>
+      <p>Next.js, React, Tailwind CSS, Framer Motion, Responsive UI</p>
+    </div>
+
+    <div>
+      <h3 className="font-bold uppercase mb-2">Backend:</h3>
+      <p>Node.js, Express, MongoDB, REST APIs</p>
+    </div>
+
+    <div>
+      <h3 className="font-bold uppercase mb-2">Machine Learning:</h3>
+      <p>Python, Pandas, NumPy, Scikit-learn, Matplotlib, Data Preprocessing</p>
+    </div>
+
+    <div>
+      <h3 className="font-bold uppercase mb-2">Core:</h3>
+      <p>Data Structures & Algorithms (Python), Git & GitHub, Problem Solving</p>
+    </div>
+  </div>
+</section>
 
 {/* Projects Section */}
 <section className="max-w-6xl mx-auto px-6 py-16">
