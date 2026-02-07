@@ -151,11 +151,12 @@ export default function PortfolioPage() {
               rel="noopener noreferrer"
               className="block w-full h-full"
             >
-            <img
-              src={project.imageUrl}
-              alt={project.title}
-              className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
-            />
+              <img
+                src={project.imageUrl}
+                alt={project.title}
+                className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
+              />
+            </a>
           </div>
 
           {/* Project Info */}
