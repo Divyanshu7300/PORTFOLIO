@@ -145,6 +145,12 @@ export default function PortfolioPage() {
         >
           {/* Project Image */}
           <div className="md:w-1/2 h-64 md:h-80 bg-gray-800 overflow-hidden rounded-xl shadow-lg">
+            <a
+              href={project.projectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full h-full"
+            >
             <img
               src={project.imageUrl}
               alt={project.title}
