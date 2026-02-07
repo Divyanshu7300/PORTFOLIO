@@ -33,7 +33,7 @@ export default function PortfolioPage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 w-full h-12 z-40 flex justify-between items-center px-6">
         <div className="text-white text-sm uppercase font-bold hover:underline">
-          <a href="mailto:divyanshunagar0000@gmail.com">HELLO@DIVYANSHU.COM</a>
+          <a href="mailto:divyanshunagar0000@gmail.com">HELLO@DIVYANSHU</a>
         </div>
         <div className="text-white text-sm uppercase font-bold hover:underline">
           <a href="https://linkedin.com/in/divyanshu0000" target="_blank" rel="noopener noreferrer">
