@@ -29,6 +29,7 @@ const SKILLS = [
   },
 ];
 
+// Sections array — add/remove freely, everything auto-adjusts
 const SECTIONS = ["hero", "about", "skills", "projects", "contact"];
 
 /* ─── Variants ─── */
@@ -64,6 +65,7 @@ export default function PortfolioPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(0);
+  const [slide, setSlide] = useState(0);
   const [isAnimating, setAnimating] = useState(false);
   const canvasRef = useRef(null);
   const cursorRef = useRef(null);
@@ -78,6 +80,11 @@ export default function PortfolioPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  /* ── Reset slide when leaving projects section ── */
+  useEffect(() => {
+    if (SECTIONS[current] !== "projects") setSlide(0);
+  }, [current]);
 
   /* ── Three.js Particle Background ── */
   useEffect(() => {
@@ -132,10 +139,7 @@ export default function PortfolioPage() {
       }
 
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(positions, 3)
-      );
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
       const createCircleTexture = () => {
@@ -144,12 +148,8 @@ export default function PortfolioPage() {
         canvas.width = canvas.height = size;
         const ctx = canvas.getContext("2d");
         const gradient = ctx.createRadialGradient(
-          size / 2,
-          size / 2,
-          0,
-          size / 2,
-          size / 2,
-          size / 2
+          size / 2, size / 2, 0,
+          size / 2, size / 2, size / 2
         );
         gradient.addColorStop(0, "rgba(255,255,255,1)");
         gradient.addColorStop(0.2, "rgba(255,255,255,0.8)");
@@ -274,11 +274,33 @@ export default function PortfolioPage() {
 
   /* ── Wheel & key handling ── */
   useEffect(() => {
+    // On projects section, only allow vertical section scroll if at first/last slide
     const onWheel = (e) => {
       e.preventDefault();
-      if (e.deltaY > 30) goTo(current + 1);
-      if (e.deltaY < -30) goTo(current - 1);
+      const isProjects = SECTIONS[current] === "projects";
+      const maxSlide = Math.max(0, projects.length - 3);
+
+      if (isProjects) {
+        if (e.deltaY > 30) {
+          if (slide < maxSlide) {
+            setSlide((s) => Math.min(maxSlide, s + 1));
+          } else {
+            goTo(current + 1);
+          }
+        }
+        if (e.deltaY < -30) {
+          if (slide > 0) {
+            setSlide((s) => Math.max(0, s - 1));
+          } else {
+            goTo(current - 1);
+          }
+        }
+      } else {
+        if (e.deltaY > 30) goTo(current + 1);
+        if (e.deltaY < -30) goTo(current - 1);
+      }
     };
+
     const onKey = (e) => {
       if (e.key === "ArrowDown" || e.key === "PageDown") goTo(current + 1);
       if (e.key === "ArrowUp" || e.key === "PageUp") goTo(current - 1);
@@ -289,18 +311,30 @@ export default function PortfolioPage() {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
     };
-  }, [current, goTo]);
+  }, [current, goTo, slide, projects.length]);
 
-  /* ── Touch swipe ── */
+  /* ── Touch swipe (vertical = section, horizontal = project slide) ── */
   useEffect(() => {
     let startY = 0;
+    let startX = 0;
     const onStart = (e) => {
       startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX;
     };
     const onEnd = (e) => {
       const dy = startY - e.changedTouches[0].clientY;
-      if (dy > 50) goTo(current + 1);
-      if (dy < -50) goTo(current - 1);
+      const dx = startX - e.changedTouches[0].clientX;
+      const isProjects = SECTIONS[current] === "projects";
+      const maxSlide = Math.max(0, projects.length - 3);
+
+      if (isProjects && Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe on projects
+        if (dx > 50) setSlide((s) => Math.min(maxSlide, s + 1));
+        if (dx < -50) setSlide((s) => Math.max(0, s - 1));
+      } else {
+        if (dy > 50) goTo(current + 1);
+        if (dy < -50) goTo(current - 1);
+      }
     };
     window.addEventListener("touchstart", onStart);
     window.addEventListener("touchend", onEnd);
@@ -308,17 +342,12 @@ export default function PortfolioPage() {
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchend", onEnd);
     };
-  }, [current, goTo]);
+  }, [current, goTo, projects.length]);
+
+  const maxSlide = Math.max(0, projects.length - 3);
 
   return (
     <>
-      {/*
-        Minimal global resets only — things Tailwind cannot do inline.
-        - cursor: none (custom cursor)
-        - overflow: hidden on body
-        - font-face imports
-        - @keyframes used by Tailwind animate-* won't cover pulse-ring, so keep that
-      */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
@@ -334,7 +363,6 @@ export default function PortfolioPage() {
         }
         .cursor-ring { animation: pulse-ring 2.4s ease-out infinite; }
 
-        /* Gradient text helper — Tailwind bg-clip-text + from/to alone can't do -webkit-text-fill-color */
         .gradient-text {
           background: linear-gradient(135deg, #fff 0%, #fff 70%, rgba(255,255,255,0.6) 100%);
           -webkit-background-clip: text;
@@ -344,10 +372,7 @@ export default function PortfolioPage() {
       `}</style>
 
       {/* ── Three.js Canvas ── */}
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 z-0 bg-black"
-      />
+      <canvas ref={canvasRef} className="fixed inset-0 z-0 bg-black" />
 
       {/* ── Custom Cursor ── */}
       <div
@@ -364,7 +389,6 @@ export default function PortfolioPage() {
         className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-12 py-6"
         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
       >
-        {/* Left */}
         <a
           href="mailto:divyanshunagar0000@gmail.com"
           className="text-white/40 hover:text-white text-sm tracking-[0.2em] uppercase font-medium transition-all duration-300 hover:scale-105 hover:translate-x-2"
@@ -372,7 +396,7 @@ export default function PortfolioPage() {
           hello@divyanshu
         </a>
 
-        {/* Center dots */}
+        {/* Center dots — dynamic, works for any number of sections */}
         <div className="flex items-center gap-3">
           {SECTIONS.map((s, i) => (
             <button
@@ -385,7 +409,6 @@ export default function PortfolioPage() {
           ))}
         </div>
 
-        {/* Right */}
         <a
           href="https://linkedin.com/in/divyanshu0000"
           target="_blank"
@@ -401,16 +424,13 @@ export default function PortfolioPage() {
         <div className="w-px h-16 bg-white/20" />
         <span
           className="text-white/30 text-[0.6rem] tracking-[0.25em] uppercase"
-          style={{
-            writingMode: "vertical-rl",
-            fontFamily: "'Space Grotesk', sans-serif",
-          }}
+          style={{ writingMode: "vertical-rl", fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {SECTIONS[current]}
         </span>
       </div>
 
-      {/* ── Section counter ── */}
+      {/* ── Section counter — auto updates for any section count ── */}
       <div
         className="fixed right-8 bottom-12 z-50 text-right"
         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
@@ -427,7 +447,7 @@ export default function PortfolioPage() {
       <div className="fixed inset-0 z-10 flex items-center justify-center">
         <AnimatePresence mode="wait">
 
-          {/* HERO */}
+          {/* ── HERO ── */}
           {current === 0 && (
             <motion.section
               key="hero"
@@ -476,11 +496,9 @@ export default function PortfolioPage() {
                 Building scalable web apps & ML-powered products.
               </motion.p>
 
-              {/* ── Buttons ── */}
               <motion.div variants={childFade} className="flex gap-4 mt-12">
-                {/* Ghost / outline button */}
                 <button
-                  onClick={() => goTo(3)}
+                  onClick={() => goTo(SECTIONS.indexOf("projects"))}
                   className="
                     relative px-8 py-3.5 rounded-full
                     text-white text-sm font-semibold tracking-widest uppercase
@@ -494,7 +512,6 @@ export default function PortfolioPage() {
                   View Work
                 </button>
 
-                {/* Solid white button */}
                 <a
                   href="mailto:divyanshunagar0000@gmail.com"
                   className="
@@ -511,7 +528,6 @@ export default function PortfolioPage() {
                 </a>
               </motion.div>
 
-              {/* Scroll indicator */}
               <motion.div
                 variants={childFade}
                 className="absolute bottom-20 flex flex-col items-center gap-2"
@@ -528,7 +544,7 @@ export default function PortfolioPage() {
             </motion.section>
           )}
 
-          {/* ABOUT */}
+          {/* ── ABOUT ── */}
           {current === 1 && (
             <motion.section
               key="about"
@@ -559,11 +575,7 @@ export default function PortfolioPage() {
                   </div>
                 </motion.div>
 
-                <motion.div
-                  variants={stagger}
-                  initial="hidden"
-                  animate="visible"
-                >
+                <motion.div variants={stagger} initial="hidden" animate="visible">
                   <motion.p
                     variants={childFade}
                     className="text-white/70 text-lg leading-relaxed"
@@ -578,7 +590,7 @@ export default function PortfolioPage() {
             </motion.section>
           )}
 
-          {/* SKILLS */}
+          {/* ── SKILLS ── */}
           {current === 2 && (
             <motion.section
               key="skills"
@@ -590,10 +602,7 @@ export default function PortfolioPage() {
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               <div className="max-w-6xl w-full">
-                <motion.div
-                  variants={childFade}
-                  className="mb-12 text-center"
-                >
+                <motion.div variants={childFade} className="mb-12 text-center">
                   <p className="text-[0.7rem] tracking-[0.25em] uppercase text-white/40 mb-3">
                     Expertise
                   </p>
@@ -630,15 +639,10 @@ export default function PortfolioPage() {
                         hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)]
                       "
                     >
-                      {/* Icon */}
                       <div className="text-3xl mb-4 leading-none">{skill.icon}</div>
-
-                      {/* Category label */}
                       <p className="text-[0.65rem] tracking-[0.18em] uppercase text-white/50 font-semibold mb-5">
                         {skill.label}
                       </p>
-
-                      {/* Tech items — consistent pill style */}
                       <div className="flex flex-col gap-2">
                         {skill.items.map((item) => (
                           <span
@@ -663,7 +667,7 @@ export default function PortfolioPage() {
             </motion.section>
           )}
 
-          {/* PROJECTS */}
+          {/* ── PROJECTS ── */}
           {current === 3 && (
             <motion.section
               key="projects"
@@ -671,10 +675,11 @@ export default function PortfolioPage() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-full h-full flex items-center justify-center px-6 overflow-y-auto"
+              className="w-full h-full flex items-center justify-center px-6"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             >
               <div className="max-w-6xl w-full py-12">
+                {/* Header */}
                 <motion.div
                   variants={childFade}
                   className="flex items-end justify-between mb-8"
@@ -694,103 +699,157 @@ export default function PortfolioPage() {
                       Projects
                     </h2>
                   </div>
-                  <span className="text-white/30 text-sm tabular-nums">
-                    {loading ? "—" : `${projects.length} total`}
-                  </span>
+
+                  <div className="flex items-center gap-4">
+                    <span className="text-white/30 text-sm tabular-nums">
+                      {loading ? "—" : `${projects.length} total`}
+                    </span>
+
+                    {/* Arrow nav — only shows if more than 3 projects */}
+                    {!loading && projects.length > 3 && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setSlide((s) => Math.max(0, s - 1))}
+                          disabled={slide === 0}
+                          className="
+                            w-9 h-9 rounded-full flex items-center justify-center
+                            border border-white/15 bg-white/[0.04]
+                            text-white/50 text-sm
+                            transition-all duration-300
+                            hover:border-white/35 hover:bg-white/[0.09] hover:text-white
+                            disabled:opacity-25 disabled:pointer-events-none
+                          "
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={() => setSlide((s) => Math.min(maxSlide, s + 1))}
+                          disabled={slide >= maxSlide}
+                          className="
+                            w-9 h-9 rounded-full flex items-center justify-center
+                            border border-white/15 bg-white/[0.04]
+                            text-white/50 text-sm
+                            transition-all duration-300
+                            hover:border-white/35 hover:bg-white/[0.09] hover:text-white
+                            disabled:opacity-25 disabled:pointer-events-none
+                          "
+                        >
+                          →
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
 
+                {/* Loading */}
                 {loading ? (
                   <div className="flex gap-3 justify-center py-20">
                     {[0, 1, 2].map((i) => (
                       <motion.div
                         key={i}
                         animate={{ opacity: [0.2, 1, 0.2] }}
-                        transition={{
-                          duration: 1.2,
-                          repeat: Infinity,
-                          delay: i * 0.2,
-                        }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
                         className="w-2 h-2 bg-white rounded-full"
                       />
                     ))}
                   </div>
                 ) : (
-                  <motion.div
-                    variants={stagger}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-                  >
-                    {projects.slice(0, 3).map((project, index) => (
-                      <motion.div key={project._id} variants={childFade}>
-                        <a
-                          href={project.projectUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="
-                            block rounded-2xl overflow-hidden group
-                            border border-white/[0.08]
-                            bg-white/[0.03] backdrop-blur-sm
-                            transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]
-                            hover:-translate-y-2
-                            hover:border-white/25
-                            hover:bg-white/[0.06]
-                            hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.6)]
-                          "
-                        >
-                          {/* Image */}
-                          <div className="h-48 overflow-hidden bg-white/5">
-                            <img
-                              src={project.imageUrl}
-                              alt={project.title}
-                              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-                            />
-                          </div>
-
-                          {/* Body */}
-                          <div className="p-6">
-                            <div className="flex items-start justify-between mb-3">
-                              <span className="text-white/30 text-xs tracking-widest uppercase tabular-nums">
-                                {String(index + 1).padStart(2, "0")}
-                              </span>
-                              <span className="text-white/30 text-sm group-hover:text-white/70 transition-colors duration-300">
-                                ↗
-                              </span>
+                  <>
+                    {/* Cards grid — animates on slide change */}
+                    <div className="overflow-hidden">
+                      <motion.div
+                        key={slide}
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                      >
+                        {projects.slice(slide, slide + 3).map((project, index) => (
+                          <a
+                            key={project._id}
+                            href={project.projectUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="
+                              block rounded-2xl overflow-hidden group
+                              border border-white/[0.08]
+                              bg-white/[0.03] backdrop-blur-sm
+                              transition-all duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]
+                              hover:-translate-y-2
+                              hover:border-white/25
+                              hover:bg-white/[0.06]
+                              hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.6)]
+                            "
+                          >
+                            {/* Image */}
+                            <div className="h-52 overflow-hidden bg-white/5">
+                              <img
+                                src={project.imageUrl}
+                                alt={project.title}
+                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                              />
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-2 tracking-tight leading-snug">
-                              {project.title}
-                            </h3>
-                            <p className="text-white/50 text-sm leading-relaxed mb-4 line-clamp-2">
-                              {project.description}
-                            </p>
 
-                            {/* Tech tags */}
-                            <div className="flex flex-wrap gap-1.5">
-                              {project.technologies.slice(0, 3).map((tech, idx) => (
-                                <span
-                                  key={idx}
-                                  className="
-                                    text-[0.7rem] font-medium
-                                    px-2.5 py-1 rounded-full
-                                    border border-white/15 text-white/45
-                                    tracking-wide
-                                  "
-                                >
-                                  {tech}
+                            {/* Body */}
+                            <div className="p-6">
+                              <div className="flex items-start justify-between mb-3">
+                                <span className="text-white/30 text-xs tracking-widest uppercase tabular-nums">
+                                  {String(slide + index + 1).padStart(2, "0")}
                                 </span>
-                              ))}
+                                <span className="text-white/30 text-sm group-hover:text-white/70 transition-colors duration-300">
+                                  ↗
+                                </span>
+                              </div>
+                              <h3 className="text-lg font-bold text-white mb-2 tracking-tight leading-snug">
+                                {project.title}
+                              </h3>
+                              <p className="text-white/50 text-sm leading-relaxed mb-4 line-clamp-2">
+                                {project.description}
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {project.technologies.slice(0, 3).map((tech, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="
+                                      text-[0.7rem] font-medium
+                                      px-2.5 py-1 rounded-full
+                                      border border-white/15 text-white/45
+                                      tracking-wide
+                                    "
+                                  >
+                                    {tech}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        </a>
+                          </a>
+                        ))}
                       </motion.div>
-                    ))}
-                  </motion.div>
+                    </div>
+
+                    {/* Dots — only if more than 3 projects */}
+                    {projects.length > 3 && (
+                      <div className="flex justify-center gap-2 mt-7">
+                        {Array.from({ length: maxSlide + 1 }).map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setSlide(i)}
+                            className={`rounded-full transition-all duration-300 ${
+                              i === slide
+                                ? "w-5 h-1.5 bg-white"
+                                : "w-1.5 h-1.5 bg-white/25 hover:bg-white/50"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </motion.section>
           )}
 
-          {/* CONTACT */}
+          {/* ── CONTACT ── */}
           {current === 4 && (
             <motion.section
               key="contact"
@@ -828,12 +887,10 @@ export default function PortfolioPage() {
                   I'm only a message away. Let's build something unforgettable together.
                 </motion.p>
 
-                {/* ── Buttons ── */}
                 <motion.div
                   variants={childFade}
                   className="flex flex-col sm:flex-row gap-4 justify-center"
                 >
-                  {/* Ghost button */}
                   <Link href="/contact">
                     <button
                       className="
@@ -850,7 +907,6 @@ export default function PortfolioPage() {
                     </button>
                   </Link>
 
-                  {/* Solid button */}
                   <a
                     href="mailto:divyanshunagar0000@gmail.com"
                     className="
@@ -875,6 +931,28 @@ export default function PortfolioPage() {
               </div>
             </motion.section>
           )}
+
+          {/*
+            ── ADD MORE SECTIONS BELOW ──
+            Copy this template and add the section name to SECTIONS array above.
+            Counter, nav dots, side label — sab auto update hoga.
+
+            {current === 5 && (
+              <motion.section
+                key="new-section"
+                variants={sectionVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="w-full h-full flex items-center justify-center px-6"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                <div className="max-w-4xl w-full">
+                  ...your content...
+                </div>
+              </motion.section>
+            )}
+          */}
 
         </AnimatePresence>
       </div>
