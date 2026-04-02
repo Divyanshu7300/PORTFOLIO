@@ -1,6 +1,8 @@
 import express from "express";
 import Contact from "../models/Contact.js"; 
+import { getDbStatus } from "../lib/db.js";
 const router = express.Router();
+const fallbackMessages = [];
 
 // Use async function
 router.post("/", async (req, res) => {
@@ -12,10 +14,22 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ msg: "Please fill all the fields" });
     }
 
-    const newContact = new Contact({ name, email, message });
-    await newContact.save(); // ✅ wait for DB save
+    if (!getDbStatus()) {
+      fallbackMessages.push({
+        name,
+        email,
+        message,
+        createdAt: new Date().toISOString(),
+      });
+      return res.status(202).json({
+        message: "Message captured in fallback mode. Database reconnect hote hi persistence add kar sakte ho.",
+      });
+    }
 
-    res.status(200).json({ msg: "Message sent successfully" });
+    const newContact = new Contact({ name, email, message });
+    await newContact.save(); // wait for DB save
+
+    res.status(200).json({ message: "Message sent successfully" });
   } catch (error) {
     console.error("Error saving contact:", error);
     res.status(500).json({ msg: "Internal server error" });
