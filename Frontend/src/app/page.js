@@ -1021,6 +1021,7 @@ export default function PortfolioPage() {
                             <img
                               src={`https://drive.google.com/thumbnail?id=${activeProject?.imageUrl?.split("id=")[1]}&sz=w1000`}
                               alt={activeProject?.title}
+                              loading="lazy"
                               className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                             />
                           </div>
