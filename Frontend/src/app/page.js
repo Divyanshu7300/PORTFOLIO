@@ -1014,7 +1014,7 @@ export default function PortfolioPage() {
                           animate={{ opacity: 1, x: 0, scale: 1 }}
                           exit={{ opacity: 0, x: -40, scale: 0.96 }}
                           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                          className="block rounded-3xl overflow-hidden group border border-white/[0.10] bg-white/[0.04] backdrop-blur-sm transition-all duration-[400ms] hover:border-white/25 hover:bg-white/[0.06] hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.6)] max-w-3xl mx-auto"
+                          className="block rounded-3xl overflow-hidden group border border-white/[0.10] bg-white/[0.04] backdrop-blur-sm transition-all duration-[400ms] hover:border-white/25 hover:bg-white/[0.06] hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.6)] max-w-3xl mx-auto h-[500px] flex flex-col"
                         >
                           {/* Project image */}
                           <div className="h-56 md:h-72 overflow-hidden bg-white/5">
@@ -1027,7 +1027,7 @@ export default function PortfolioPage() {
                           </div>
 
                           {/* Project info */}
-                          <div className="p-6 md:p-8 bg-gradient-to-b from-transparent to-white/[0.02]">
+                          <div className="p-6 md:p-8 bg-gradient-to-b from-transparent to-white/[0.02] flex flex-col flex-1 justify-between">
                             <div className="flex items-start justify-between mb-4">
                               <span className="text-white/30 text-xs tracking-widest uppercase tabular-nums">
                                 {String(projectSlide + 1).padStart(2, "0")}
