@@ -30,12 +30,8 @@ ${message}
         }),
       }
     );
-    console.log("Status:", response.status);
-    console.log("Status Text:", response.statusText);
 
     const data = await response.json();
-
-    console.log("Telegram Response:", data);
 
     if (!data.ok) {
       console.error("Telegram API Error:", data);
